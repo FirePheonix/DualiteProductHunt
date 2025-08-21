@@ -6,7 +6,7 @@ import ProjectPage from './pages/ProjectPage';
 import Footer from './components/Footer';
 import AuthModal from './components/AuthModal';
 import AddProjectModal from './components/AddProjectModal';
-import { useAuth } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext'; 
 
 function App() {
   const { isAuthModalOpen, isAddProjectModalOpen } = useAuth();
