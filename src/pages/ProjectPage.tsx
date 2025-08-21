@@ -55,19 +55,41 @@ const ProjectPage = () => {
         .from('products')
         .select(`
           *,
-          profiles:user_id(full_name),
-          user_has_upvoted:product_upvotes(count),
-          user_has_followed:product_follows(count)
+          profiles:user_id(full_name)
         `)
         .eq('id', id)
         .single();
 
       if (error) throw error;
 
+      // Check if current user has upvoted this product
+      const { data: userUpvote, error: upvoteError } = await supabase
+        .from('product_upvotes')
+        .select('product_id')
+        .eq('product_id', id)
+        .eq('user_id', user?.id)
+        .single();
+
+      if (upvoteError && upvoteError.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error('Error checking user upvote:', upvoteError);
+      }
+
+      // Check if current user has followed this product
+      const { data: userFollow, error: followError } = await supabase
+        .from('product_follows')
+        .select('product_id')
+        .eq('product_id', id)
+        .eq('user_id', user?.id)
+        .single();
+
+      if (followError && followError.code !== 'PGRST116') { // PGRST116 is "not found"
+        console.error('Error checking user follow:', followError);
+      }
+
       const formattedProduct = {
         ...data,
-        user_has_upvoted: Array.isArray(data.user_has_upvoted) && data.user_has_upvoted.length > 0,
-        user_has_followed: Array.isArray(data.user_has_followed) && data.user_has_followed.length > 0,
+        user_has_upvoted: !!userUpvote,
+        user_has_followed: !!userFollow,
       } as Product;
 
       setProduct(formattedProduct);

@@ -32,18 +32,28 @@ const AllProjectsPage = () => {
         .from('products')
         .select(`
           *,
-          profiles:user_id(full_name),
-          user_has_upvoted:product_upvotes(count),
-          user_has_followed:product_follows(count)
+          profiles:user_id(full_name)
         `);
 
       if (error) {
         setError(error.message);
       } else {
+        // Check if current user has upvoted each product
+        const { data: userUpvotes, error: upvotesError } = await supabase
+          .from('product_upvotes')
+          .select('product_id')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+
+        if (upvotesError) {
+          console.error('Error fetching user upvotes:', upvotesError);
+        }
+
+        const userUpvotedProductIds = new Set(userUpvotes?.map(u => u.product_id) || []);
+
         const formattedData = data.map(p => ({
           ...p,
-          user_has_upvoted: Array.isArray(p.user_has_upvoted) && p.user_has_upvoted.length > 0,
-          user_has_followed: Array.isArray(p.user_has_followed) && p.user_has_followed.length > 0,
+          user_has_upvoted: userUpvotedProductIds.has(p.id),
+          user_has_followed: false, // We'll implement this later if needed
         })) as unknown as Product[];
         setProducts(formattedData);
       }
