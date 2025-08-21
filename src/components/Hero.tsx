@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabaseClient';
 import { useEffect, useState } from 'react';
+import { RetroGrid } from './magicui/retro-grid';
 
 const Hero = () => {
   const { user, openAuthModal, openAddProjectModal } = useAuth();
@@ -39,7 +40,13 @@ const Hero = () => {
 
   return (
     <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 text-center overflow-hidden">
-      <div className="absolute inset-0 bg-grid"></div>
+      <RetroGrid 
+        className="opacity-60"
+        angle={45}
+        cellSize={40}
+        lightLineColor="rgba(255, 255, 255, 0.8)"
+        darkLineColor="rgba(255, 255, 255, 0.8)"
+      />
       <div className="absolute top-1/2 left-1/4 w-1/2 h-1/2 gradient-blur-1 transform -translate-x-1/2 -translate-y-1/2"></div>
       <div className="absolute top-1/2 right-1/4 w-1/3 h-1/3 gradient-blur-2 transform translate-x-1/2 -translate-y-1/2"></div>
       
