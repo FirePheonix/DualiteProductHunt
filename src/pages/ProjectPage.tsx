@@ -24,13 +24,14 @@ import {
 import { supabase } from '../lib/supabaseClient';
 import { Product, ProductComment } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import CommentsSection from '../components/CommentsSection';
 
 const ProjectPage = () => {
   const { id } = useParams<{ id: string }>();
   const { user, openAuthModal } = useAuth();
   
   const [product, setProduct] = useState<Product | null>(null);
-  const [comments, setComments] = useState<ProductComment[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUpvoted, setIsUpvoted] = useState(false);
@@ -40,13 +41,10 @@ const ProjectPage = () => {
   const [isVoting, setIsVoting] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [newComment, setNewComment] = useState('');
-  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchProduct();
-      fetchComments();
       incrementViews();
     }
   }, [id]);
@@ -84,24 +82,7 @@ const ProjectPage = () => {
     }
   };
 
-  const fetchComments = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('product_comments')
-        .select(`
-          *,
-          profiles:user_id(full_name)
-        `)
-        .eq('product_id', id)
-        .is('parent_id', null)
-        .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setComments(data || []);
-    } catch (err) {
-      console.error('Error fetching comments:', err);
-    }
-  };
 
   const incrementViews = async () => {
     try {
@@ -163,35 +144,7 @@ const ProjectPage = () => {
     }
   };
 
-  const handleSubmitComment = async () => {
-    if (!user) {
-      openAuthModal('login');
-      return;
-    }
-    if (!newComment.trim() || isSubmittingComment) return;
 
-    setIsSubmittingComment(true);
-    try {
-      const { error } = await supabase
-        .from('product_comments')
-        .insert({
-          product_id: id,
-          content: newComment.trim()
-        });
-
-      if (error) throw error;
-      
-      setNewComment('');
-      fetchComments();
-      if (product) {
-        setProduct(prev => prev ? { ...prev, comments_count: (prev.comments_count || 0) + 1 } : null);
-      }
-    } catch (err) {
-      console.error('Error submitting comment:', err);
-    } finally {
-      setIsSubmittingComment(false);
-    }
-  };
 
   const nextImage = () => {
     if (product?.gallery_images && product.gallery_images.length > 0) {
@@ -419,63 +372,7 @@ const ProjectPage = () => {
             )}
 
             {/* Comments Section */}
-            <div className="bg-brand-gray-darker border border-brand-gray-dark rounded-xl p-6">
-              <h2 className="text-xl font-bold mb-4">Comments ({product.comments_count || 0})</h2>
-              
-              {/* Comment Input */}
-              <div className="mb-6">
-                <textarea
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="What do you think about this product?"
-                  className="w-full bg-brand-gray-dark border border-brand-gray-medium rounded-lg p-4 text-white placeholder-brand-gray focus:outline-none focus:border-brand-green transition-colors resize-none"
-                  rows={3}
-                />
-                <div className="flex justify-end mt-3">
-                  <button
-                    onClick={handleSubmitComment}
-                    disabled={!newComment.trim() || isSubmittingComment}
-                    className="bg-brand-green text-black px-6 py-2 rounded-lg font-medium hover:bg-brand-green/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {isSubmittingComment ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <MessageCircle className="w-4 h-4" />
-                    )}
-                    Comment
-                  </button>
-                </div>
-              </div>
-
-              {/* Comments List */}
-              <div className="space-y-4">
-                {comments.map(comment => (
-                  <div key={comment.id} className="border-b border-brand-gray-dark pb-4 last:border-b-0">
-                    <div className="flex items-start gap-3">
-                      <div className="w-8 h-8 bg-brand-green rounded-full flex items-center justify-center text-black font-bold text-sm">
-                        {comment.profiles?.full_name?.charAt(0) || 'U'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">{comment.profiles?.full_name || 'Anonymous'}</span>
-                          <span className="text-xs text-brand-gray">
-                            {new Date(comment.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <p className="text-brand-gray-light text-sm">{comment.content}</p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                {comments.length === 0 && (
-                  <div className="text-center py-8 text-brand-gray">
-                    <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No comments yet. Be the first to share your thoughts!</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <CommentsSection productId={product.id} />
           </div>
 
           {/* Sidebar */}
