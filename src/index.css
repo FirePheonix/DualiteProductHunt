@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-black;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.bg-grid {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px), linear-gradient(to right, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.gradient-blur-1 {
+    background: linear-gradient(to right, rgba(74, 144, 226, 0.3), rgba(61, 255, 140, 0.3));
+    filter: blur(100px);
+    opacity: 0.2;
+}
+
+.gradient-blur-2 {
+    background: linear-gradient(to left, rgba(61, 255, 140, 0.3), rgba(74, 144, 226, 0.3));
+    filter: blur(100px);
+    opacity: 0.2;
+}
